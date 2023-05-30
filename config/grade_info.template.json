@@ -1,0 +1,16 @@
+{
+  "enrollYear": 2020,
+  "basicInfo": {
+    "totalClassCount": 33,
+    "seatCount": 80,
+    "examTimes": 4
+  },
+  "searchInfo": {
+    "schoolTermSequence": 6,
+    "ClassNumber": 2
+  },
+  "studentInfo": {
+    "examNumber": "2016220044",
+    "examSequence": 0
+  }
+}

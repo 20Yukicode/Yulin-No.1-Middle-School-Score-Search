@@ -1,1 +1,4 @@
 /resources
+.idea
+config/*
+!config/*.template.*
