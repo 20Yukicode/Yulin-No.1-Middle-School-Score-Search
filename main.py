@@ -4,7 +4,6 @@ import score_search
 from environment import BASE_PATH
 from score_search.common.basic import GradeMap
 from score_search.data.process import DataProcess
-from score_search.grade.score import Score
 from util import readJsonFile
 
 if __name__ == '__main__':
@@ -17,19 +16,28 @@ if __name__ == '__main__':
     while True:
         searchInfo = info["searchInfo"]
         studentInfo = info["studentInfo"]
-        schoolTermSequence = searchInfo["schoolTermSequence"]
+        schoolTermSequence = searchInfo.get("schoolTermSequence")
+        classNumber = searchInfo.get("classNumber")
         if choice == 1:
-            score_search.getSomeStuScores(enrollYear, schoolTermSequence, searchInfo["classNumber"])
-            break
+            try:
+                storePath = score_search.getSomeStuScores(enrollYear, schoolTermSequence, classNumber, DataProcess.Web)
+                print(f"考试成绩已存入{storePath}")
+            except ValueError as e:
+                storePath = score_search.getSomeStuScores(enrollYear, schoolTermSequence, classNumber,DataProcess.Excel)
+                print(f"考试成绩已存入{storePath}")
+            finally:
+                break
         elif choice == 2:
-            scores = score_search.getOneStuScore(studentInfo["examNumber"], schoolTermSequence,
-                                                 studentInfo["examSequence"],DataProcess.Web)
-            if scores is None:
-                Score.DataProcessType = DataProcess.Excel
+            try:
                 scores = score_search.getOneStuScore(studentInfo["examNumber"], schoolTermSequence,
-                                                     studentInfo["examSequence"],DataProcess.Excel)
-            print(scores)
-            break
+                                                     studentInfo["examSequence"], DataProcess.Web)
+                print(scores)
+            except ValueError as e:
+                scores = score_search.getOneStuScore(studentInfo["examNumber"], schoolTermSequence,
+                                                     studentInfo["examSequence"], DataProcess.Excel)
+                print(scores)
+            finally:
+                break
         elif choice == 3:
             print("查询系统退出...")
             break

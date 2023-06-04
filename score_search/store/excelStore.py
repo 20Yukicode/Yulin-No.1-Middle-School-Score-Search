@@ -4,7 +4,6 @@ from typing import List
 import xlwt
 
 from score_search.grade.schoolTerm import SchoolTerm
-from score_search.grade.score import Score
 from score_search.utils.util import generatorScoreFilePath
 
 SubjectExcel = {
@@ -39,18 +38,23 @@ SubjectWeb = {
 
 
 # 四次考试,然后分文理科,每次考试的每个学生的成绩
-def storeScores(scores: List[List[List[List]]], schoolTerm: SchoolTerm, classNum: int):
+def storeScores(scores: List[List[List[List]]], schoolTerm: SchoolTerm, classNum: int, dataProcessType: int):
+    pathList = []
     for i in range(schoolTerm.totalExamTimes):
         path = generatorScoreFilePath(schoolTerm.enrollYear, schoolTerm.grade, i, schoolTerm.sequenceNum, classNum)
-        excelScores = ExcelScores.constructExcelGrade(schoolTerm, examTimes=i, path=path)
+        pathList.append(path)
+        excelScores = ExcelScores.constructExcelGrade(schoolTerm, examTimes=i, path=path,
+                                                      dataProcessType=dataProcessType)
         excelScores.storeGrades(scores[i])
+    return pathList
 
 
 class ExcelScores:
-    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str):
+    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str, dataProcessType: int):
         self.schoolTerm: SchoolTerm = schoolTerm
         self.examTimes: int = examTimes
         self.path: str = path
+        self.dataProcessType: int = dataProcessType
 
         self.workBook = None
         self.workSheets = []
@@ -65,17 +69,17 @@ class ExcelScores:
         return style
 
     @staticmethod
-    def constructExcelGrade(schoolTerm: SchoolTerm, examTimes: int, path: str):
-        if schoolTerm.uniformRank:
-            return UniformRankExcelScores(schoolTerm, examTimes, path)
+    def constructExcelGrade(schoolTerm: SchoolTerm, examTimes: int, path: str, dataProcessType: int):
+        if schoolTerm.uniformRank and not schoolTerm.branch:
+            return UniformRankExcelScores(schoolTerm, examTimes, path, dataProcessType)
         else:
-            return NewExcelScores(schoolTerm, examTimes, path)
+            return NewExcelScores(schoolTerm, examTimes, path, dataProcessType)
 
     def initExcel(self, workSheetNames):
         self.workBook = xlwt.Workbook(encoding='utf-8')
         for name in workSheetNames:
             self.workSheets.append(self.workBook.add_sheet(name))
-        if Score.DataProcessType == 1:
+        if self.dataProcessType == 1:
             col = SubjectExcel.get(self.schoolTerm.sequenceNum)
         else:
             col = SubjectWeb.get(self.schoolTerm.sequenceNum)
@@ -99,14 +103,14 @@ class ExcelScores:
 
 
 class UniformRankExcelScores(ExcelScores):
-    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str):
-        super().__init__(schoolTerm, examTimes, path)
+    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str, dataProcessType: int):
+        super().__init__(schoolTerm, examTimes, path, dataProcessType)
         workSheetNames = ['成绩']
         super().initExcel(workSheetNames)
 
 
 class NewExcelScores(ExcelScores):
-    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str):
-        super().__init__(schoolTerm, examTimes, path)
+    def __init__(self, schoolTerm: SchoolTerm, examTimes: int, path: str, dataProcessType):
+        super().__init__(schoolTerm, examTimes, path, dataProcessType)
         workSheetNames = ['理科成绩', '文科成绩']
         super().initExcel(workSheetNames)

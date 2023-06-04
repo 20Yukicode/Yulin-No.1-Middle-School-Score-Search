@@ -23,12 +23,12 @@ def writeError(content: str, path: str = "../error.txt"):
 
 
 # 入学年份 年级 学期 班别号
-def generatorScoreFilePath(enrollYear: int, grade: str, examTimes: int, schoolTerm: int, classNumber: int = -1) -> str:
+def generatorScoreFilePath(enrollYear: int, grade: str, examTimes: int, schoolTerm: int, classNumber: int = None) -> str:
     global ScoreIndex
     path = f'{PathPrefix}/{enrollYear}级/高{grade}/{schoolTerm}学期'
     if not os.path.exists(f'{path}/{ScoreIndex}'):
         os.makedirs(f'{path}/{ScoreIndex}')
-    if classNumber == -1:
+    if classNumber is None:
         while True:
             if os.path.exists(f'{path}/{ScoreIndex}/第{examTimes + 1}次月考成绩单.xls'):
                 ScoreIndex = ScoreIndex + 1

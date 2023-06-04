@@ -30,8 +30,7 @@ class Score:
 
     @staticmethod
     # 四次月考一个班级的每个学生考试成绩
-    def handleClassScores(schoolTerm: SchoolTerm, classNumber: int, dataProcessType: int = DataProcess.Web) -> List[
-        List[List]]:
+    def handleClassScores(schoolTerm: SchoolTerm, classNumber: int, dataProcessType: int = DataProcess.Web) -> List[List[List]]:
         totalExamTimes = schoolTerm.totalExamTimes
         classScores = [[] for _ in range(totalExamTimes)]
         for j in range(1, schoolTerm.seatCount):
@@ -58,9 +57,7 @@ class Score:
             data = Score.handleClassScores(schoolTerm, i + 1)
             for j in range(totalExamTimes):
                 allStuScores[j] += data[j]
-
         finalData = []
         for i in range(totalExamTimes):
             finalData.append(schoolTerm.postProcessScore(allStuScores[i], dataProcessType))
-
         return finalData

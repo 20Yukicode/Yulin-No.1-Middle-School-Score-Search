@@ -21,15 +21,17 @@ class SchoolTerm:
         self.enrollYear: int = enrollYear
         self.sequenceNum: int = schoolTermSequenceNum
         self.grade: str = Map[(schoolTermSequenceNum - 1) // 2]
-        self._totalExamTimes = 4
-        self.uniformRank = self.sequenceNum == 1 or self.enrollYear > 2020
+        self._totalExamTimes: int = 4
+        self.uniformRank: bool = self.sequenceNum == 1 or self.enrollYear > 2020
+        # 这个是因为高一高二同学的需求，对于物理划为一类，历史划为一类
+        self.branch: bool = True
         self.totalClassCount: int = GradeMap[enrollYear]['totalClassCount']
         self.seatCount: int = GradeMap[enrollYear]['seatCount']
 
     @property
     def totalExamTimes(self) -> int | None:
         examTimes = GradeMap[self.enrollYear].get('examTimes')
-        if examTimes is None :
+        if examTimes is None:
             self._totalExamTimes: int = 4
         else:
             self._totalExamTimes = examTimes
@@ -54,7 +56,7 @@ class SchoolTerm:
     def sortScores(self, scores: List[List], dataProcessType: int):
         if dataProcessType == 1:
             # print(scores)
-            if self.uniformRank:
+            if self.uniformRank and not self.branch:
                 number = 17
             else:
                 number = 13
@@ -69,7 +71,7 @@ class SchoolTerm:
     def postProcessScore(self, allStuScores: List[List[str]], dataProcessType: int) -> List[List[List[str]]]:
         finalScores = []
         # print(allStuScores)
-        if self.uniformRank:
+        if self.uniformRank and not self.branch:
             self.sortScores(allStuScores, dataProcessType)
             finalScores.append(allStuScores)
         else:
@@ -80,7 +82,6 @@ class SchoolTerm:
                     scienceScores.append(item)
                 else:
                     liberalScores.append(item)
-
             self.sortScores(scienceScores, dataProcessType)
             self.sortScores(liberalScores, dataProcessType)
             finalScores.append(scienceScores)
