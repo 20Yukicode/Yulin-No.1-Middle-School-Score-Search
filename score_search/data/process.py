@@ -6,7 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from score_search.common.basic import GradeMap
+from score_search.exception.apiError import ApiException
 from score_search.grade.schoolTerm import SchoolTerm
+from score_search.utils.util import isNull
 
 
 class DataProcess:
@@ -24,7 +26,7 @@ class DataProcess:
             return DataProcessExcel(examNumber, schoolTerm)
         elif dataOrigin == DataProcess.Web:
             return DataProcessWeb(examNumber, schoolTerm)
-        raise Exception("没有这种爬虫")
+        raise ApiException("没有这种爬虫")
 
     def initData(self):
         pass
@@ -58,8 +60,8 @@ class DataProcessExcel(DataProcess):
         # print(generator)
         result = requests.get(DataProcessExcel.ScoreUrl)
         self.data = result.content.decode('gbk')
-        if not self.data:
-            raise Exception(f"{self.examNumber}此学生不存在成绩")
+        if isNull(self.data):
+            raise ApiException(f"第{self.schoolTerm.sequenceNum}学期，{self.examNumber}此学生不存在成绩")
 
     # 筛选数据 data->List[str]
     def filterData(self):
@@ -93,13 +95,13 @@ def decodeStr(s: str) -> str:
     return urllib.parse.unquote(s, encoding='gbk')
 
 
-def getExamTimes(schoolTerm: SchoolTerm) -> int | None:
+def getExamTimes(schoolTerm: SchoolTerm, dataProcessType=DataProcess.Web) -> int | None:
     examNumber = str(schoolTerm.enrollYear) + "010001"
-    dataProcess = DataProcess.constructDataProcess(examNumber, schoolTerm, DataProcess.Web)
+    dataProcess = DataProcess.constructDataProcess(examNumber, schoolTerm, dataProcessType)
     try:
         dataProcess.initData()
         dataProcess.filterData()
-    except Exception as e:
+    except ApiException:
         return None
     examTimes = len(dataProcess.data) // 10 - 1
     if examTimes == -1:
@@ -119,8 +121,11 @@ class DataProcessWeb(DataProcess):
 
     # 爬取数据 data->str
     def initData(self):
+        if not self.schoolTerm.isNowSchoolTerm:
+            raise ApiException("不是当前学期，无法通过web方式查询")
         # self.basicInfo = self.nameList.getInfoByExamNum(self.examNumber)
         dataProcessExcel = DataProcessExcel(examNumber=self.examNumber, schoolTerm=self.schoolTerm)
+        # 先通过excel的方式获取基本信息
         self.basicInfo = dataProcessExcel.handleData()[0]
         stuData = {
             'name': self.basicInfo[1].encode('gbk'),
@@ -131,8 +136,8 @@ class DataProcessWeb(DataProcess):
         }
         result = requests.post(DataProcessWeb.Url, data=stuData)
         self.data = result.content.decode('gbk')
-        if not self.data:
-            raise Exception(f"{self.examNumber}此学生不存在成绩")
+        if isNull(self.data):
+            raise ApiException(f"第{self.schoolTerm.sequenceNum}学期，{self.examNumber}此学生不存在成绩")
 
     # 筛选数据 data->List[str]
     def filterData(self):
@@ -157,8 +162,8 @@ class DataProcessWeb(DataProcess):
 
 if __name__ == "__main__":
     examNum = '2021120001'
-    schoolTerm = SchoolTerm(2021, 3)
-    dataProcess = DataProcess.constructDataProcess(examNum, schoolTerm, DataProcess.Web)
+    schoolTermExample = SchoolTerm(2021, 3)
+    dataProcess = DataProcess.constructDataProcess(examNum, schoolTermExample, DataProcess.Web)
     res = dataProcess.handleData()
     print(res)
 

@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from environment import BASE_PATH
@@ -5,6 +6,29 @@ from environment import BASE_PATH
 PathPrefix = os.path.join(BASE_PATH, "resources")
 # '../../resources'
 ScoreIndex = 0
+
+
+# 注意grade是1-3,schoolTerm的范围是1-6
+def nowSchoolTerm(year: int) -> int:
+    now = datetime.date.today()
+    nowYear = now.year
+    nowMonth = now.month
+    # 当前年级
+    nowGrade = nowYear - year
+    temp = 0
+    if 3 <= nowMonth <= 8:
+        pass
+    elif 1 <= nowMonth <= 2:
+        temp = 1
+    else:
+        temp = -1
+    # 当前学期
+    schoolTerm = nowGrade * 2 - temp
+    return schoolTerm
+
+
+def isNull(string: str) -> bool:
+    return string is None or string.isspace() or string.strip() == ""
 
 
 def isNum(n: str) -> bool:
@@ -23,7 +47,8 @@ def writeError(content: str, path: str = "../error.txt"):
 
 
 # 入学年份 年级 学期 班别号
-def generatorScoreFilePath(enrollYear: int, grade: str, examTimes: int, schoolTerm: int, classNumber: int = None) -> str:
+def generatorScoreFilePath(enrollYear: int, grade: str, examTimes: int, schoolTerm: int,
+                           classNumber: int = None) -> str:
     global ScoreIndex
     path = f'{PathPrefix}/{enrollYear}级/高{grade}/{schoolTerm}学期'
     if not os.path.exists(f'{path}/{ScoreIndex}'):

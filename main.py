@@ -4,6 +4,7 @@ import score_search
 from environment import BASE_PATH
 from score_search.common.basic import GradeMap
 from score_search.data.process import DataProcess
+from score_search.exception.apiError import ApiException
 from util import readJsonFile
 
 if __name__ == '__main__':
@@ -22,20 +23,40 @@ if __name__ == '__main__':
             try:
                 storePath = score_search.getSomeStuScores(enrollYear, schoolTermSequence, classNumber, DataProcess.Web)
                 print(f"考试成绩已存入{storePath}")
-            except ValueError as e:
-                storePath = score_search.getSomeStuScores(enrollYear, schoolTermSequence, classNumber,DataProcess.Excel)
-                print(f"考试成绩已存入{storePath}")
+
+            except ApiException as e:
+                print(e)
+                try:
+                    storePath = score_search.getSomeStuScores(enrollYear, schoolTermSequence, classNumber,
+                                                              DataProcess.Excel)
+                    print(f"考试成绩已存入{storePath}")
+                except ApiException as e:
+                    print(e)
             finally:
                 break
+
         elif choice == 2:
+            examNumber = studentInfo["examNumber"]
+            examSequence = studentInfo["examSequence"]
             try:
-                scores = score_search.getOneStuScore(studentInfo["examNumber"], schoolTermSequence,
-                                                     studentInfo["examSequence"], DataProcess.Web)
-                print(scores)
-            except ValueError as e:
-                scores = score_search.getOneStuScore(studentInfo["examNumber"], schoolTermSequence,
-                                                     studentInfo["examSequence"], DataProcess.Excel)
-                print(scores)
+                scores = score_search.getOneStuScore(examNumber, schoolTermSequence, examSequence, DataProcess.Web)
+                if examSequence is not None:
+                    print(scores)
+                else:
+                    for score in scores:
+                        print(score)
+            except Exception as e:
+                print(e)
+                try:
+                    scores = score_search.getOneStuScore(examNumber, schoolTermSequence, examSequence,
+                                                         DataProcess.Excel)
+                    if examSequence is not None:
+                        print(scores)
+                    else:
+                        for score in scores:
+                            print(score)
+                except Exception as e:
+                    print(e)
             finally:
                 break
         elif choice == 3:

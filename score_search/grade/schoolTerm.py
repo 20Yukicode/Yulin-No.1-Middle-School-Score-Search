@@ -1,7 +1,8 @@
 from typing import List
 
 from score_search.common.basic import GradeMap, Map
-from score_search.utils.util import isNum
+from score_search.exception.apiError import ApiException
+from score_search.utils.util import isNum, nowSchoolTerm
 
 
 # 把字符串成绩加起来得到总分，并返回浮点数的成绩数组
@@ -20,6 +21,8 @@ class SchoolTerm:
     def __init__(self, enrollYear: int, schoolTermSequenceNum: int):
         self.enrollYear: int = enrollYear
         self.sequenceNum: int = schoolTermSequenceNum
+        # 判断是否是本学期
+        self.isNowSchoolTerm: bool = nowSchoolTerm(self.enrollYear) == self.sequenceNum
         self.grade: str = Map[(schoolTermSequenceNum - 1) // 2]
         self._totalExamTimes: int = 4
         self.uniformRank: bool = self.sequenceNum == 1 or self.enrollYear > 2020
@@ -50,7 +53,7 @@ class SchoolTerm:
             # 第二学期之后
             finalScores = floatList + [totalScore]
         else:
-            raise Exception("没有其他类型")
+            raise ApiException("没有其他类型")
         return finalScores
 
     def sortScores(self, scores: List[List], dataProcessType: int):
